@@ -1,0 +1,135 @@
+---
+title: "COVID-19 Data Analysis"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+    theme: flatly
+    social: [ "twitter", "facebook", "menu" ]
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(highcharter)
+library(janitor)
+```
+
+
+```{r global, include = FALSE}
+corona <- read_csv("covid_19_data.csv")
+corona %>% 
+  clean_names() %>% 
+  filter(observation_date %in% max(observation_date)) -> corona_latest
+
+
+```
+
+
+# Summary
+
+Row 
+-----------------------------------------------------------------------
+
+
+### `r paste("Total Confirmed",max(corona_latest$observation_date))`
+```{r}
+valueBox(sum(corona_latest$confirmed), icon = "fa-users")
+
+```
+
+### Total Recovered
+```{r}
+valueBox(sum(corona_latest$recovered), icon = "fa-smile-o")
+
+```
+
+### Total Deaths
+```{r}
+valueBox(sum(corona_latest$deaths), icon = "fa-frown-o")
+
+```
+
+
+
+Row 
+-----------------------------------------------------------------------
+
+### Top 10 Countries 
+
+```{r}
+
+corona_latest %>% 
+  filter(! country_region %in% 'Others') %>% 
+  group_by(country_region) %>% 
+  summarise(total_confirmed = sum(confirmed)) %>% 
+  arrange(desc(total_confirmed)) %>% 
+  head(10) %>% 
+  hchart("column", hcaes(x = country_region, y = total_confirmed)) %>% 
+  hc_title(text = list("Top 10 Countries by Covid-19 Confirmed")) %>% 
+  hc_add_theme(hc_theme_538())
+
+```
+
+# US Cities
+
+Row {.tabset .tabset-fade}
+-----------------------------------------------------------------------
+
+### By Confirmed
+
+```{r}
+corona_latest %>% 
+  filter(country_region %in% "US") %>% 
+  group_by(province_state) %>% 
+  summarise(total_confirmed = sum(confirmed)) %>% 
+  arrange(desc(total_confirmed)) %>% 
+  #head(10) %>% 
+  hchart("column", hcaes(x = province_state, y = total_confirmed)) %>% 
+  hc_title(text = list("Cities in US")) %>% 
+  hc_add_theme(hc_theme_538())
+
+```
+
+### By Recovered
+
+```{r}
+corona_latest %>% 
+  filter(country_region %in% "US") %>% 
+  group_by(province_state) %>% 
+  summarise(total_recovered = sum(recovered)) %>% 
+  arrange(desc(total_recovered)) %>% 
+  #head(10) %>% 
+  hchart("column", hcaes(x = province_state, y = total_recovered)) %>% 
+  hc_title(text = list("Cities in US")) %>% 
+  hc_add_theme(hc_theme_538())
+
+```
+
+### By Deaths
+
+```{r}
+corona_latest %>% 
+  filter(country_region %in% "US") %>% 
+  group_by(province_state) %>% 
+  summarise(total_deaths = sum(deaths)) %>% 
+  arrange(desc(total_deaths)) %>% 
+  #head(10) %>% 
+  hchart("column", hcaes(x = province_state, y = total_deaths)) %>% 
+  hc_title(text = list("Cities in US")) %>% 
+  hc_add_theme(hc_theme_538())
+
+```
+
+
+# Info
+
+Row {.bg-primary}
+------------------------
+
++ [CoronaVirus WHO](https://www.who.int/health-topics/coronavirus)
++ [coronavirus R Package by Rami Krispin](https://github.com/RamiKrispin/coronavirus)
++ [Novel Corona Virus 2019 Dataset - Updated by SRK](https://www.kaggle.com/sudalairajkumar/novel-corona-virus-2019-dataset)
+
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/mOV1aBVYKGA" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
